@@ -1,5 +1,3 @@
-version: "3"
-
 services:
   otel-lgtm:
     image: grafana/otel-lgtm
