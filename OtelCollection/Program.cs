@@ -1,4 +1,5 @@
 using OpenTelemetry;
+using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -38,6 +39,12 @@ namespace OtelCollection
             builder.Services.AddControllers();
 
             var settings = builder.Configuration.GetSection(nameof(OpenTelemetrySettings)).Get<OpenTelemetrySettings>();
+
+            var protocol = string.IsNullOrWhiteSpace(settings!.Protocol) ? OtlpExportProtocol.Grpc : Enum.Parse<OtlpExportProtocol>(settings.Protocol, ignoreCase: true);
+            var baseUrl = string.IsNullOrWhiteSpace(settings.BaseUrl) ? new Uri("http://localhost:4317/") : new Uri(settings.BaseUrl);
+            var metrics = !settings.Metrics.Any() ? new List<string> { forecastMeter.Name, "Microsoft.AspNetCore.Hosting", "Microsoft.AspNetCore.Server.Kestrel" } : settings.Metrics;
+            var sources = !settings.Sources.Any() ? new List<string> { forecastActivitySource.Name } : settings.Sources;
+            var serviceName = string.IsNullOrWhiteSpace(settings.ServiceName) ? Environment.MachineName : settings.ServiceName;
 
             var telemetry = builder.Services.AddOpenTelemetry();
 
